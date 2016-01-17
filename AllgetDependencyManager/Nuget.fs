@@ -5,7 +5,6 @@ open AllgetDependencyManager
 module NugetConfigurationParser =
     open FSharp.Data
     open System.IO
-    open System
 
     type PackageConfigFormat = XmlProvider<"""<?xml version="1.0" encoding="utf-8"?>
         <packages>
@@ -32,3 +31,19 @@ module NugetConfigurationParser =
     let ParseNugetPackageConfig path content =
         PackageConfigFormat.Parse(content).Packages 
         |> Seq.map(fun f -> { ProjectName = GetFolderOfFile path; NugetPackageName = f.Id; Version = createNugetVersion f.Version })
+
+
+module NugetApiGateway =
+    open FSharp.Data
+
+    type Simple = JsonProvider<"NugetRegistrationJsonSample.json">
+
+    let GetLatestVersion (packagename: string) =
+        try
+            let url = sprintf "https://api.nuget.org/v3/registration1/%s/index.json" (packagename.ToLower())
+            let response = Http.RequestString(url)
+            let latestVersion = Simple.Parse(response).Items.[0].Upper
+            Some latestVersion
+        with    
+            | _ -> None
+

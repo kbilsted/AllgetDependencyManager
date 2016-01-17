@@ -3,3 +3,4 @@
 type PackageVersion = { Version: string; SortableName: string }
 type Package = { Name: string; Version: PackageVersion}
 type ConfigurationRow  = { ProjectName: string; NugetPackageName: string; Version: PackageVersion }
+type NugetInfoPackage  = { Name: string; Version: string}

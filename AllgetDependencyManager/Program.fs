@@ -4,6 +4,7 @@ open System.IO
 
 module CompositionRoot =
     open AllgetDependencyManager.Nuget.NugetConfigurationParser
+    open AllgetDependencyManager.Nuget.NugetApiGateway
     open System.IO
 
     let SelectAll = 
@@ -13,10 +14,17 @@ module CompositionRoot =
     
     let SelectNugetPackage =
         SelectAll 
-        |> Seq.map(fun f -> {Name=f.NugetPackageName; Version=f.Version}) 
+        |> Seq.map(fun f -> {Package.Name=f.NugetPackageName; Package.Version=f.Version}) 
         |> Seq.distinctBy(fun f -> f.Version.Version)
         |> Seq.sortBy(fun f -> f.Version.SortableName)
         |> Seq.groupBy(fun f -> f.Name)
+
+    let SelectLatestVersions configrows = 
+        configrows 
+        |> Seq.map(fun f -> (f, GetLatestVersion f))
+        |> Seq.where(fun (f,version) -> version.IsSome)
+        |> Seq.map(fun (f,version) -> f, {NugetInfoPackage.Name = f; Version = version.Value})        
+        |> dict
 
     [<EntryPoint>]
     let main argv = 
