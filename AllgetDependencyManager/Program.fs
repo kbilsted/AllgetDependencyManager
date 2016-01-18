@@ -11,6 +11,7 @@ module CompositionRoot =
         Directory.GetFileSystemEntries(".", "packages.config", SearchOption.AllDirectories)
         |> Seq.map(fun f -> ParseNugetPackageConfig f (File.ReadAllText(f)))
         |> Seq.collect(fun f -> f)
+        |> Seq.where(fun f -> f.ProjectName <> ".nuget" )
     
     let SelectNugetPackage =
         SelectAll 
