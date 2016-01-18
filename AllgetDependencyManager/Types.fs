@@ -1,6 +1,11 @@
 ﻿namespace AllgetDependencyManager
 
-type PackageVersion = { Version: string; SortableName: string }
-type Package = { Name: string; Version: PackageVersion}
-type ConfigurationRow  = { ProjectName: string; NugetPackageName: string; Version: PackageVersion }
-type NugetInfoPackage  = { Name: string; Version: string}
+[<AutoOpen>]
+module infrastructure =
+    type ProjectName = string
+    type PackageName = string
+
+    type PackageVersion = { Version: string; SortableName: string }
+    type Package = { Name: PackageName; Version: PackageVersion}
+    type ConfigurationRow  = { ProjectName: ProjectName; PackageName: PackageName; Version: PackageVersion }
+    type NugetInfoPackage  = { Name: PackageName; Version: string}
