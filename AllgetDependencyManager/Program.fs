@@ -45,6 +45,21 @@ module CompositionRoot =
                 printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
 
 
+        // ---
+        printfn " -- each dependency and all its versions and latest nuget -- "
+        let dependencies = SelectNugetPackage
+        let latestVersions = SelectLatestVersions (dependencies |> Seq.map(fun (name, versions) -> name))
+        for (p,vs) in SelectNugetPackage do
+            printfn "%s" p
+            let latestVersion = latestVersions.[p].Version
+            let hasLatestVersion = vs |> Seq.exists(fun f -> f.Version.Version = latestVersion)
+            for v in vs do
+                if latestVersion = v.Version.Version then
+                    printfn "  * %s (%s) (Nuget)" v.Version.Version v.Version.SortableName
+                else
+                    printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
+            if not hasLatestVersion then
+                printfn "* Nuget version: %s" latestVersion
 
         ignore SelectAll
 
