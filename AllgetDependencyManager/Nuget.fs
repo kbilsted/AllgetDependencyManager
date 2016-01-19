@@ -27,8 +27,8 @@ module NugetConfigurationParser =
         (new DirectoryInfo(Path.GetDirectoryName(path))).Name
 
     let ParseNugetPackageConfig path content =
-        PackageConfigFormat.Parse(content).Packages 
         |> Seq.map(fun f -> { ProjectName = GetFolderOfFile path; PackageName = f.Id; Version = createNugetVersion f.Version })
+        PackageConfigFormat.Parse(content).Packages
 
 
 module NugetApiGateway =

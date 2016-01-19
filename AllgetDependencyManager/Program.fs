@@ -29,14 +29,21 @@ module CompositionRoot =
     [<EntryPoint>]
     let main argv = 
         printfn "%A" argv
-        SelectAll
-        |> Seq.iter(fun f -> printfn "%s %s " f.ProjectName f.PackageName)
 
+        // --- 
+        printfn " -- all projects -- "
+        SelectAll
+        |> Seq.distinctBy(fun f-> f.ProjectName)
+        |> Seq.iter(fun f -> printfn "%s" f.ProjectName)
+
+        // ---
         printfn " -- each dependency and all its versions -- "
+        let dependencies = SelectNugetPackage
         for (p,vs) in SelectNugetPackage do
             printfn "%s" p
             for v in vs do
-                printfn "*  %s (%s)" v.Version.Version v.Version.SortableName
+                printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
+
 
 
         ignore SelectAll
