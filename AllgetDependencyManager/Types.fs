@@ -2,8 +2,8 @@
 
 [<AutoOpen>]
 module infrastructure =
-    type ProjectName = string
-    type PackageName = string
+    type PackageName = PackageName of string 
+    type ProjectName = ProjectName of string 
 
     type PackageVersion = { Version: string; SortableName: string }
     type Package = { Name: PackageName; Version: PackageVersion}

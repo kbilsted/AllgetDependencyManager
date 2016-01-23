@@ -10,7 +10,7 @@ module CompositionRoot =
         Directory.GetFileSystemEntries(".", "packages.config", SearchOption.AllDirectories)
         |> Seq.map(fun f -> ParseNugetPackageConfig f (File.ReadAllText(f)))
         |> Seq.collect(fun f -> f)
-        |> Seq.where(fun f -> f.ProjectName <> ".nuget" )
+        |> Seq.where(fun f -> let (ProjectName name) = f.ProjectName in name <> ".nuget")
     
     let SelectNugetPackage =
         SelectAll 
@@ -34,13 +34,13 @@ module CompositionRoot =
         printfn " -- all projects -- "
         SelectAll
         |> Seq.distinctBy(fun f-> f.ProjectName)
-        |> Seq.iter(fun f -> printfn "%s" f.ProjectName)
+        |> Seq.iter(fun f -> printfn "%A" f.ProjectName)
 
         // ---
         printfn " -- each dependency and all its versions -- "
         let dependencies = SelectNugetPackage
         for (p,vs) in SelectNugetPackage do
-            printfn "%s" p
+            printfn "%A" p
             for v in vs do
                 printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
 
@@ -51,7 +51,7 @@ module CompositionRoot =
 //        let cheat = SelectAll |> Seq.map(fun f -> f.ProjectName) |> SelectLatestVersions // WRONG TYPE - works due to type aliasing
         let latestVersions = SelectLatestVersions (dependencies |> Seq.map(fun (name, versions) -> name))
         for (p,vs) in SelectNugetPackage do
-            printfn "%s" p
+            printfn "%A" p
             let latestVersion = latestVersions.[p].Version
             let hasLatestVersion = vs |> Seq.exists(fun f -> f.Version.Version = latestVersion)
             for v in vs do

@@ -24,11 +24,11 @@ module NugetConfigurationParser =
         }
 
     let GetFolderOfFile (path: string) =
-        (new DirectoryInfo(Path.GetDirectoryName(path))).Name
+        ProjectName (new DirectoryInfo(Path.GetDirectoryName(path))).Name
 
     let ParseNugetPackageConfig path content =
-        |> Seq.map(fun f -> { ProjectName = GetFolderOfFile path; PackageName = f.Id; Version = createNugetVersion f.Version })
         PackageConfigFormat.Parse(content).Packages
+        |> Seq.map(fun f -> { ProjectName = GetFolderOfFile path; PackageName = PackageName f.Id; Version = createNugetVersion f.Version })
 
 
 module NugetApiGateway =
@@ -38,10 +38,10 @@ module NugetApiGateway =
 
     let GetLatestVersion (packagename: PackageName) =
         try
-            let url = sprintf "https://api.nuget.org/v3/registration1/%s/index.json" (packagename.ToLower())
+            let (PackageName name) = packagename
+            let url = sprintf "https://api.nuget.org/v3/registration1/%s/index.json" (name.ToLower())
             let response = Http.RequestString(url)
             let latestVersion = Simple.Parse(response).Items.[0].Upper
             Some latestVersion
         with    
             | _ -> None
-
