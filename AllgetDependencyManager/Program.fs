@@ -44,8 +44,8 @@ module CompositionRoot =
         |> Seq.collect(fun f -> f)
         |> Seq.where(fun f -> let (ProjectName name) = f.ProjectName in name <> ".nuget")
     
-    let SelectNugetPackage =
-        SelectAll 
+    let SelectNugetPackage configrows =
+        configrows
         |> Seq.map(fun f -> {Package.Name=f.PackageName; Package.Version=f.Version}) 
         |> Seq.distinctBy(fun f -> f.Version.Version)
         |> Seq.sortBy(fun f -> f.Version.SortableName)
