@@ -38,11 +38,22 @@ module CompositionRoot =
     open AllgetDependencyManager.NugetApiGateway
     open CommandLineParsing
 
-    let SelectAll = 
+    let filterProjects configuration entries =
+        let filterEntries filter entries =
+            let (FilterInstruction (kind, regex)) = filter 
+            entries |> Seq.where(fun entry -> 
+                let (ProjectName projname) = entry.ProjectName
+                match kind with
+                | Include -> regex.IsMatch(projname)
+                | Exclude -> not <| regex.IsMatch(projname))
+
+        Reduce filterEntries configuration.ProjectsFilter entries 
+
+    let SelectAll commandlineconfiguration = 
         Directory.GetFileSystemEntries(".", "packages.config", SearchOption.AllDirectories)
         |> Seq.map(fun f -> ParseNugetPackageConfig f (File.ReadAllText(f)))
         |> Seq.collect(fun f -> f)
-        |> Seq.where(fun f -> let (ProjectName name) = f.ProjectName in name <> ".nuget")
+        |> filterProjects commandlineconfiguration
     
     let SelectNugetPackage configrows =
         configrows
@@ -65,14 +76,14 @@ module CompositionRoot =
 
         // --- 
         printfn " -- all projects -- "
-        SelectAll
+        SelectAll commandlineconf
         |> Seq.distinctBy(fun f-> f.ProjectName)
         |> Seq.iter(fun f -> printfn "%A" f.ProjectName)
 
         // ---
         printfn " -- each dependency and all its versions -- "
-        let dependencies = SelectNugetPackage
-        for (p,vs) in SelectNugetPackage do
+        let dependencies = SelectAll commandlineconf |> SelectNugetPackage
+        for (p,vs) in dependencies do
             printfn "%A" p
             for v in vs do
                 printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
@@ -80,10 +91,10 @@ module CompositionRoot =
 
         // ---
         printfn " -- each dependency and all its versions and latest nuget -- "
-        let dependencies = SelectNugetPackage
 //        let cheat = SelectAll |> Seq.map(fun f -> f.ProjectName) |> SelectLatestVersions // WRONG TYPE - works due to type aliasing
+        let dependencies = SelectAll commandlineconf |> SelectNugetPackage
         let latestVersions = SelectLatestVersions (dependencies |> Seq.map(fun (name, versions) -> name))
-        for (p,vs) in SelectNugetPackage do
+        for (p,vs) in dependencies do
             printfn "%A" p
             let latestVersion = latestVersions.[p].Version
             let hasLatestVersion = vs |> Seq.exists(fun f -> f.Version.Version = latestVersion)
