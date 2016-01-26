@@ -91,7 +91,6 @@ module CompositionRoot =
 
         // ---
         printfn " -- each dependency and all its versions and latest nuget -- "
-//        let cheat = SelectAll |> Seq.map(fun f -> f.ProjectName) |> SelectLatestVersions // WRONG TYPE - works due to type aliasing
         let dependencies = SelectAll commandlineconf |> SelectNugetPackage
         let latestVersions = SelectLatestVersions (dependencies |> Seq.map(fun (name, versions) -> name))
         for (p,vs) in dependencies do
