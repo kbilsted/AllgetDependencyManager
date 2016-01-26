@@ -2,9 +2,41 @@
 
 open System.IO
 
+module CommandLineParsing =
+    open System.Text.RegularExpressions
+    
+    type MatchKind = Include | Exclude
+    type FilterInstruction = FilterInstruction of MatchKind * Regex
+
+    type CommandLineConfiguration = { 
+            ProjectsFilter: FilterInstruction list; 
+        }
+    
+    let ParseCommandLine args : CommandLineConfiguration =
+        let AddConfig config kind filter =
+            let instruction = FilterInstruction(Include, new Regex(filter, RegexOptions.Compiled))
+            { config with ProjectsFilter = instruction::config.ProjectsFilter }
+
+        let rec parseIth args config =
+            match args with 
+            | [] -> config
+            | "-iproj"::xs -> 
+                match xs with
+                | filter::xss -> parseIth xss (AddConfig config Include filter)
+                | [] -> failwith "Missing filter argument for option '-iproj'"
+            | "-eproj"::xs ->
+                match xs with
+                | filter::xss -> parseIth xss (AddConfig config Exclude filter)
+                | [] -> failwith "Missing filter argument for option '-eproj'"
+            | x::xs -> failwith <| sprintf "I don't understand %s" x
+        
+        parseIth args { ProjectsFilter = [FilterInstruction(Exclude, new Regex("^\.nuget$"))] }
+
+
 module CompositionRoot =
     open AllgetDependencyManager.NugetConfigurationParser
     open AllgetDependencyManager.NugetApiGateway
+    open CommandLineParsing
 
     let SelectAll = 
         Directory.GetFileSystemEntries(".", "packages.config", SearchOption.AllDirectories)
@@ -29,6 +61,7 @@ module CompositionRoot =
     [<EntryPoint>]
     let main argv = 
         printfn "%A" argv
+        let commandlineconf = ParseCommandLine (Array.toList argv)
 
         // --- 
         printfn " -- all projects -- "
