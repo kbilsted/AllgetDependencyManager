@@ -5,6 +5,7 @@ open System.IO
 module CompositionRoot =
     open AllgetDependencyManager.NugetConfigurationParser
     open AllgetDependencyManager.NugetApiGateway
+    open System
 
     let SelectAll = 
         Directory.GetFileSystemEntries(".", "packages.config", SearchOption.AllDirectories)
@@ -43,6 +44,24 @@ module CompositionRoot =
             printfn "%A" p
             for v in vs do
                 printfn "  * %s (%s)" v.Version.Version v.Version.SortableName
+
+
+        // ---
+        printfn " -- each dependency and all its versions -- with packages "
+        let allPacks = SelectAll |> Seq.toList
+        let dependencies = SelectNugetPackage
+        for (p,vs) in dependencies do
+            printfn "%A" p
+            for v in vs do
+                let projectsUsingVersion = 
+                    allPacks 
+                    |> Seq.where(fun f->f.PackageName=p && f.Version.Version = v.Version.Version) 
+                    |> Seq.map(fun f -> 
+                        let (ProjectName name) = f.ProjectName
+                        sprintf "%s" name) 
+                    |> Seq.distinct
+                    |> String.concat ", " 
+                printfn "%s, %s" v.Version.Version projectsUsingVersion
 
 
         // ---
