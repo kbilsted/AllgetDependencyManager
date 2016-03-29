@@ -1,2 +1,2 @@
 # AllgetDependencyManager
-Manage dependencies across projects
+Manage dependencies across projects.
